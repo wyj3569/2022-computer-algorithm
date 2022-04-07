@@ -1,0 +1,1 @@
+dp[1][task.begin - 1] * 10
