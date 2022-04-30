@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-
 struct Task {
     int cost, due;
     Task(int ci, int di) {
@@ -26,87 +25,65 @@ void input_data() {
         pq.push(Task(ci, di));
     }
 }
-
 bool fill_table_place(int cost, int colum) {
-    bool ret = false;
-
-    for (int row = 1; row <= k; row++) {
-        if (job_table[row][colum] == 0) {
-            job_table[row][colum] = cost;
-            ret = true;
-            break;
-        }
-    }
-
-    if (!ret) {
-        for (int col = colum - 1; col >= 1; col--) {
-            if (job_table[k][col] == 0) {
-                job_table[k][col] = cost;
-                ret = true;
-                break;
+    for (int col = colum; col >= 1; col--) {
+        for (int row = 1; row <= k; row++) {
+            if (job_table[row][col] == 0) {
+                job_table[row][col] = cost;
+                return true;
             }
         }
     }
-
-    return ret;
+    return false;
 }
-
-int get_cost() {
-    int first = 0;
-
-    for (int row = 1; row <= k; row++) {
-        for (int col = 1; col <= T; col++) {
-            first += job_table[row][col];
-        }
-    }
-
-    return first;
-}
-
 void fill_second_table() {
+    int min_cost = 0;
     int min_diff = INT_MAX;
-    pair<int, int> target;  // (cost, colum)
+    pair<int, int> target;
 
-    for (int col = 1; col <= T; col++) {
-        // 현재 주목 작업 job_table[k][col]
-        for (int i = 0; i < candidate.size(); i++) {
-            if (col <= candidate[i].due) {
-                int diff = abs(job_table[k][col] - candidate[i].cost);
+    for (int i = 0; i < candidate.size(); i++) {
+        Task task = candidate[i];
+        for (int row = 1; row <= k; row++) {
+            for (int col = 1; col <= task.due; col++) {
+                int diff = abs(job_table[row][col] - task.cost);
 
                 if (0 < diff && diff < min_diff) {
+                    min_cost = task.cost;
                     min_diff = diff;
-                    target.first = candidate[i].cost;
+                    target.first = row;
                     target.second = col;
                 }
             }
         }
     }
-
-    job_table[k][target.second] = target.first;
+    job_table[target.first][target.second] = min_cost;
 }
 
+int get_cost() {
+    int cost = 0;
+    for (int row = 1; row <= k; row++)
+        for (int col = 1; col <= T; col++)
+            cost += job_table[row][col];
+    return cost;
+}
 void get_table() {
     while (!pq.empty()) {
         Task task = pq.top();
         pq.pop();
-
         if (!fill_table_place(task.cost, task.due))
             candidate.push_back(Task(task.cost, task.due));
     }
-
     for (int i = 1; i <= T; i++)
         candidate.push_back(Task(0, i));
 
     cout << get_cost() << " ";
     fill_second_table();
-    cout << get_cost() << " ";
+    cout << get_cost();
 }
-
 void solution() {
     input_data();
     get_table();
 }
-
 int main() {
     solution();
     return 0;
